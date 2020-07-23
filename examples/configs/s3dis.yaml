@@ -1,0 +1,49 @@
+# training epochs
+epochs: 128
+## test and save term
+test_epoch: 1
+save_epoch: 1
+## modify epochs for resume
+modify_epochs: null
+
+# Dataset setting
+## test area
+area: ???
+## dataset
+dataset: s3dis
+## dataset path
+dataset_root: ???
+batch_size: 32
+nworkers: 8
+subset: null
+
+# Network settings
+## use cuda
+device: cuda
+## use STN
+use_trans: true
+## number of points in a block
+num_points: 4096
+## number of prediction classes
+num_classes: 13
+## reproducibility
+reproducibility: False
+## resume training
+resume: null
+
+# Optimizer settings
+## optimizer name
+optim: adam
+lr: 0.001
+betas: [0.9,0.999]
+wd: 0.0001
+## scheduler
+epoch_size: 20
+gamma: 0.5
+
+# other
+## seed value
+seed: 71
+## result output directory
+note: ???
+odir_root: s3dis/
