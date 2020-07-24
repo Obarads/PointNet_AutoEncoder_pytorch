@@ -30,7 +30,6 @@ def get_git_commit_hash():
     hash_code = subprocess.check_output(cmd.split()).strip().decode('utf-8')
     return hash_code
 
-
 class PytorchTools:
     def __init__(self):
         print("This class is for staticmethod.")

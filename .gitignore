@@ -1,0 +1,6 @@
+# folder
+.vscode
+__pycache__
+outputs
+data
+

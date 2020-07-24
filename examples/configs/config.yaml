@@ -1,5 +1,5 @@
 # training epochs
-epochs: 128
+epochs: 100
 ## test and save term
 test_epoch: 1
 save_epoch: 1
@@ -7,12 +7,12 @@ save_epoch: 1
 modify_epochs: null
 
 # Dataset setting
-## test area
-area: ???
 ## dataset
-dataset: s3dis
+dataset: modelnet40
 ## dataset path
 dataset_root: ???
+train_class_list: [chair]
+test_class_list: [chair, car]
 batch_size: 32
 nworkers: 8
 subset: null
@@ -20,12 +20,10 @@ subset: null
 # Network settings
 ## use cuda
 device: cuda
-## use STN
-use_trans: true
+## use feature STN
+use_feat_trans: true
 ## number of points in a block
-num_points: 4096
-## number of prediction classes
-num_classes: 13
+num_points: 2048
 ## reproducibility
 reproducibility: False
 ## resume training
@@ -44,6 +42,3 @@ gamma: 0.5
 # other
 ## seed value
 seed: 71
-## result output directory
-note: ???
-odir_root: s3dis/

@@ -10,22 +10,26 @@ class PointNetAutoEncoder(nn.Module):
     def __init__(self, use_feat_stn, num_points):
         super(PointNetAutoEncoder, self).__init__()
         self.encoder = PointNetExtractor(
-            use_feat_stn=use_feat_stn,
-            with_pointwise_feat=True
+            use_feat_stn=use_feat_stn
         )
 
-        self.decoder = nn.Sequential(
+        self.decoder_layers = nn.Sequential(
             Linear(1024, 1024),
             Linear(1024, 1024),
-            Linear(1024, num_points * 3)
+            nn.Linear(1024, num_points * 3),
         )
 
         self.num_points = num_points
 
+    def decoder(self, x):
+        batch_size, num_channels = x.shape
+        x = self.decoder_layers(x)
+        x = x.view(batch_size, -1, 3) # shape: batch_size, num_points, coordinate
+        return x
+
     def forward(self, x):
         x, coord_trans, feat_trans = self.encoder(x)
         x = self.decoder(x)
-        x = x.view(-1, 3)
         return x, coord_trans, feat_trans
 
 # https://github.com/fxia22/pointnet.pytorch/blob/master/pointnet/model.py
@@ -40,6 +44,7 @@ class PointNetExtractor(nn.Module):
         self.conv3 = MLP1D(128, 1024, act=None)
 
         self.use_feat_stn = use_feat_stn
+        self.with_pointwise_feat = with_pointwise_feat
 
     def forward(self, x):
         # get number of points
@@ -50,7 +55,7 @@ class PointNetExtractor(nn.Module):
         x = self.transpose(x, coord_trans)
 
         # conv
-        x = self.conv1d(x)
+        x = self.conv1(x)
 
         # transpose features
         if self.use_feat_stn:
