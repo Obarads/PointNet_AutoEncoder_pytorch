@@ -53,21 +53,21 @@ def main(cfg: omegaconf.DictConfig) -> None:
         scheduler.step()
         print('-> Train loss: {}, dist_loss: {}'.format(train_loss, train_dist_loss))
 
-        # validation
+        # evaluation
         if (epoch+1) % cfg.test_epoch == 0:
-            val_acc, val_dist_loss = eval(cfg, model, dataset["train"], 
+            test_acc, test_dist_loss = eval(cfg, model, dataset["train"], 
                                        dataset["test"], criterion)
-            print('-> Test accracy: {}, dist_loss: {}'.format(val_acc, val_dist_loss))
+            print('-> Test accracy: {}, dist_loss: {}'.format(test_acc, test_dist_loss))
         else:
-            val_acc = 0
+            test_acc = 0
 
         # logging
         log_dict = {
             "epoch": epoch,
             "train/loss": train_loss,
             "train/dist_loss": train_dist_loss,
-            "val/acc": val_acc,
-            "val/dist_loss": val_dist_loss
+            "test/acc": test_acc,
+            "test/dist_loss": test_dist_loss
         }
         logger.update(log_dict)
 
@@ -144,7 +144,7 @@ def train(cfg, model, dataset, optimizer, criterion, publisher="train"):
     return batch_loss.compute(), batch_dist_loss.compute()
 
 # evaluation function (validation)
-def eval(cfg, model, train_dataset, val_dataset, criterion, publisher="test"):
+def eval(cfg, model, train_dataset, test_dataset, criterion, publisher="test"):
     model.eval()
     
     # get global features using a training dataset
@@ -170,18 +170,18 @@ def eval(cfg, model, train_dataset, val_dataset, criterion, publisher="test"):
         train_global_features = np.concatenate(train_global_features, axis=0) # shape (num_train_data, 1024) 
 
     # get global features using a validation dataset
-    val_loader = DataLoader(
-        val_dataset,
+    test_loader = DataLoader(
+        test_dataset,
         batch_size=cfg.batch_size,
         num_workers=cfg.nworkers,
         pin_memory=True
     )
-    val_loader = tqdm(val_loader, ncols=100, desc="get eval GF")
-    val_global_features = []
+    test_loader = tqdm(test_loader, ncols=100, desc="get eval GF")
+    test_global_features = []
     eval_labels = []
     loss_list = []
     with torch.no_grad():
-        for lidx, (inputs, targets) in enumerate(val_loader):
+        for lidx, (inputs, targets) in enumerate(test_loader):
             inputs = inputs.to(cfg.device, non_blocking=True)
             inputs = torch.transpose(inputs, 1, 2)[:, :3] # inputs.shape: Batch_size, num_channels, num_points
 
@@ -202,19 +202,19 @@ def eval(cfg, model, train_dataset, val_dataset, criterion, publisher="test"):
             loss_list.append(dist_loss)
 
             # add a global feature to a list
-            val_global_features.append(PytorchTools.t2n(outputs))
+            test_global_features.append(PytorchTools.t2n(outputs))
 
             # get eval labels
             eval_labels.append(targets)
 
-        val_global_features = np.concatenate(val_global_features, axis=0) # shape (num_eval_data, 1024)
+        test_global_features = np.concatenate(test_global_features, axis=0) # shape (num_eval_data, 1024)
         eval_labels = np.squeeze(np.concatenate(eval_labels, axis=0),axis=-1) # shape (num_data)
         loss_list = np.concatenate(loss_list, axis=0)
 
     # use one class classification
     classifier = OneClassSVM(kernel='rbf', nu=0.1, gamma='auto')
     classifier.fit(train_global_features)
-    pred_labels = classifier.predict(val_global_features)
+    pred_labels = classifier.predict(test_global_features)
 
     # get training data label
     _, true_label = train_dataset[0]

@@ -58,29 +58,16 @@ class ModelNet(Dataset):
         self.classes = dict(zip(self.cat, range(len(self.cat))))
         self.normal_channel = normal_channel
 
-        shape_ids = {"train": [], "test": []}
+        # select classes
         if class_list is not None:
             class_string = ",".join(class_list)
         else:
-            class_string = "" # select all classes
-        
-        with open(os.path.join(self.root, 'modelnet40_train.txt')) as f:
-            for line in f:
-                obeject_file = line.replace("\n","")
-                object_name = '_'.join(line.split('_')[0:-1])
-                # Note: For example, when tv is selected, tv_stand is also included,
-                #       but in ModelNet the characters do not overlap.
-                if object_name in class_string: 
-                    shape_ids["train"].append(obeject_file)
+            class_string = ",".join(self.cat) # select all classes
 
-        with open(os.path.join(self.root, 'modelnet40_test.txt')) as f:
-            for line in f:
-                obeject_file = line.replace("\n","")
-                object_name = '_'.join(line.split('_')[0:-1])
-                # Note: For example, when tv is selected, tv_stand is also included,
-                #       but in ModelNet the characters do not overlap.
-                if object_name in class_string: 
-                    shape_ids["test"].append(obeject_file)
+        # get file_path list
+        train_shape_ids = self.get_shape_ids('modelnet40_train.txt', class_string)
+        test_shape_ids = self.get_shape_ids('modelnet40_test.txt', class_string)
+        shape_ids = {"train": train_shape_ids, "test": test_shape_ids}
 
         # original code: https://github.com/yanx27/Pointnet_Pointnet2_pytorch/blob/master/data_utils/ModelNetDataLoader.py#L50
         # shape_ids = {}
@@ -107,27 +94,51 @@ class ModelNet(Dataset):
         if index in self.cache:
             point_set, cls = self.cache[index]
         else:
+            # get data path
             fn = self.datapath[index]
+
+            # get label
             cls = self.classes[self.datapath[index][0]]
-            cls = np.array([cls]).astype(np.int32)
+            cls = np.array([cls]).astype(np.int32) # [cls]???
+
+            # load points
             point_set = np.loadtxt(fn[1], delimiter=',').astype(np.float32)
-            if self.uniform:
-                point_set = farthest_point_sample(point_set, self.npoints)
-            else:
-                point_set = point_set[0:self.npoints,:]
 
-            point_set[:, 0:3] = pc_normalize(point_set[:, 0:3])
-
-            if not self.normal_channel:
-                point_set = point_set[:, 0:3]
-
+            # save points to memory
             if len(self.cache) < self.cache_size:
                 self.cache[index] = (point_set, cls)
 
+        # select points
+        if self.uniform:
+            point_set = farthest_point_sample(point_set, self.npoints)
+        else:
+            choice = np.random.choice(len(point_set), self.npoints, replace=False)
+            point_set = point_set[choice, :]
+
+        # normalize coordinate
+        point_set[:, 0:3] = pc_normalize(point_set[:, 0:3])
+
+        if not self.normal_channel:
+            point_set = point_set[:, 0:3]
+
+        # points_set.shape: (npoints, channels), cls: (1)
         return point_set, cls
 
     def __getitem__(self, index):
         return self._get_item(index)
+    
+    def get_shape_ids(self, txt_file, class_string):
+        shape_ids = []
+        with open(os.path.join(self.root, txt_file)) as f:
+            for line in f:
+                obeject_file = line.replace("\n","")
+                object_name = '_'.join(line.split('_')[0:-1])
+                # Note: For example, when tv is selected, tv_stand is also included,
+                #       but in ModelNet the characters do not overlap.
+                if object_name in class_string: 
+                    shape_ids.append(obeject_file)
+        return shape_ids
+
 
 if __name__ == '__main__':
     import torch
