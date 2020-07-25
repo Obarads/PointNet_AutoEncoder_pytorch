@@ -1,12 +1,19 @@
 ## Requirements
-- 1. Install python packages
+- Install python packages
 - ```bash
   pip install hydra-core --upgrade --pre  
-  pip install pytorch
+  pip install torch
+  pip install plyfile
+  pip install seaborn
   ```
 - Note: It is tested with:
-  - python 3.6.10
-  - torch==1.2.0
+  ```bash
+  python 3.6.10
+  torch==1.2.0
+  hydra-core==0.11.3
+  plyfile==0.7.1
+  seaborn==0.10.0
+  ```
 
 ## Download dataset
 - Download ModelNet40
@@ -15,6 +22,7 @@
   ```
 
 ## How to use
+- This repository use [hydra](https://hydra.cc/docs/intro/), so have configs (args) in `examples/configs` folder and outputs data in `YYYY-MM-DD/HH-MM-SS` folder.
 - training
   - train PointNet AutoEncoder and  `sklearn.svm.OneClassSVM`
     ```bash
