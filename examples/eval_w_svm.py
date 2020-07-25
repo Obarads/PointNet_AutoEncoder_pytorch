@@ -153,7 +153,7 @@ def eval(cfg, model, train_dataset, val_dataset, criterion, publisher="test"):
     # get loss of true data
     dist_loss = np.mean(loss_list[eval_labels])
     # get a accuracy
-    acc = np.mean(pred_labels == eval_labels)
+    acc = np.mean(pred_labels == eval_labels) * 100
 
     return acc, dist_loss
 
