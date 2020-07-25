@@ -35,6 +35,11 @@
     python examples/eval_w_svm.py dataset_root=data/modelnet40_normal_resampled/ resume=outputs/YYYY-MM-DD/HH-MM-SS/model.pth.tar
     ```
     - `examples/eval.py` args was written on `examples/configs/config.yaml`.
+- test
+  - extract global features using PointNet AutoEncoder
+    ```bash
+    python examples/tests/test2.py
+    ```
 
 
 ## references

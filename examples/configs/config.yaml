@@ -11,7 +11,9 @@ modify_epochs: null
 dataset: modelnet40
 ## dataset path
 dataset_root: ???
+## a class when training model
 train_class_list: [chair]
+## classes at evaluation
 test_class_list: [chair, car]
 batch_size: 32
 nworkers: 8

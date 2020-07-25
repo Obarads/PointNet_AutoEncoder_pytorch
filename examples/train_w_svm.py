@@ -101,7 +101,6 @@ def main(cfg: omegaconf.DictConfig) -> None:
 def train(cfg, model, dataset, optimizer, criterion, publisher="train"):
     model.train()
     loader = DataLoader(
-        #Subset(dataset["train"],range(320)),
         dataset,
         batch_size=cfg.batch_size,
         num_workers=cfg.nworkers,
