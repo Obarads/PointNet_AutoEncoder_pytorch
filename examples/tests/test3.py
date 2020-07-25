@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     data_list = []
     for i in range(5):
-        points = torch.rand((batch_size, num_channels, num_points), dtype=torch.float32)
+        points = torch.rand((batch_size, num_channels, num_points), dtype=torch.float32) # point cloud format
         points = points.to(device, non_blocking=True)
         global_features, _, _ = model.encoder(points)
         data_list.append(PytorchTools.t2n(global_features)) # t2n: torch tensor to numpy
@@ -31,4 +31,3 @@ if __name__ == "__main__":
     # global_features.shape: (batch_size*5, global_feature dim)
     # 32 * 5 = 160
     print(data_list.shape, data_list)
-
